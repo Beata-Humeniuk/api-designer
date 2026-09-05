@@ -1,0 +1,13 @@
+.DS_Store
+.git/**
+.github/**
+.gitignore
+.vscode/**
+.vscodeignore
+docs/**
+node_modules/**
+package-lock.json
+src/**
+test/**
+*.log
+*.vsix
