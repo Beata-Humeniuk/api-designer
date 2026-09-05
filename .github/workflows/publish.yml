@@ -1,0 +1,223 @@
+name: Publish extension
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-marketplace
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Test, package and publish
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out main
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version and work out what is still missing
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          if [ ! -f package.json ]; then
+            echo "work=false" >> "$GITHUB_OUTPUT"
+            echo "No manifest on main yet; the extension has not landed here."
+            exit 0
+          fi
+
+          version=$(node -p "require('./package.json').version")
+          if [ -z "$version" ]; then
+            echo "Could not read the version from package.json."
+            exit 1
+          fi
+          tag="v${version}"
+          vsix="api-designer-${version}.vsix"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "vsix=$vsix" >> "$GITHUB_OUTPUT"
+
+          need_tag=true
+          if git rev-parse "$tag" >/dev/null 2>&1; then need_tag=false; fi
+
+          need_release=true
+          if gh release view "$tag" >/dev/null 2>&1; then need_release=false; fi
+
+          need_publish=$need_tag
+
+          work=false
+          if [ "$need_publish" = true ] || [ "$need_tag" = true ] || [ "$need_release" = true ]; then
+            work=true
+          fi
+
+          echo "publish=$need_publish" >> "$GITHUB_OUTPUT"
+          echo "need_tag=$need_tag" >> "$GITHUB_OUTPUT"
+          echo "need_release=$need_release" >> "$GITHUB_OUTPUT"
+          echo "work=$work" >> "$GITHUB_OUTPUT"
+
+          if [ "$work" = false ]; then
+            echo "Version $version is published, tagged and released; there is nothing left to do."
+          else
+            echo "Version $version — publish: $need_publish, tag: $need_tag, release: $need_release."
+          fi
+
+      - name: Set up Node.js
+        if: steps.version.outputs.work == 'true'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install locked dependencies
+        if: steps.version.outputs.work == 'true'
+        run: npm ci
+
+      - name: Run tests
+        if: steps.version.outputs.work == 'true'
+        run: npm test
+
+      - name: Build final VSIX
+        if: steps.version.outputs.work == 'true'
+        run: npm run package -- --out "${{ steps.version.outputs.vsix }}"
+
+      - name: Verify final VSIX
+        if: steps.version.outputs.work == 'true'
+        env:
+          EXPECTED_VERSION: ${{ steps.version.outputs.version }}
+          VSIX: ${{ steps.version.outputs.vsix }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -p "$VSIX" extension/package.json > /tmp/extension-package.json
+          node <<'NODE'
+          const manifest = require('/tmp/extension-package.json');
+          const expected = {
+            name: 'api-designer',
+            displayName: 'API Designer',
+            publisher: 'beatahumeniuk',
+            version: process.env.EXPECTED_VERSION,
+            repository: {
+              type: 'git',
+              url: 'https://github.com/Beata-Humeniuk/api-designer.git',
+            },
+          };
+          for (const [key, value] of Object.entries(expected)) {
+            if (JSON.stringify(manifest[key]) !== JSON.stringify(value)) {
+              throw new Error(`${key} does not match the expected release metadata`);
+            }
+          }
+          NODE
+
+          unexpected=$(unzip -Z1 "$VSIX" | grep -E '(^|/)(\.env($|\.)|\.git/|\.github/|\.claude/|node_modules/|src/|test/|out-test/)|\.(pem|key|p12|pfx)$' || true)
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected sensitive or development files in VSIX:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+      - name: Publish to Visual Studio Marketplace
+        if: steps.version.outputs.publish == 'true'
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VSIX: ${{ steps.version.outputs.vsix }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          gallery_has_version() {
+            curl -sS --max-time 30 -X POST \
+              'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json;api-version=3.0-preview.1' \
+              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-designer"}]}],"flags":19}' \
+              | node -e '
+                let raw = "";
+                process.stdin.on("data", (chunk) => { raw += chunk; });
+                process.stdin.on("end", () => {
+                  try {
+                    const versions = JSON.parse(raw).results[0].extensions[0].versions;
+                    process.exit(versions.some((v) => v.version === process.env.VERSION) ? 0 : 1);
+                  } catch (e) {
+                    process.exit(1);
+                  }
+                });
+              '
+          }
+
+          if npx --no-install vsce publish --packagePath "$VSIX" 2>&1 | tee /tmp/publish.log; then
+            echo "Published $VERSION to the Marketplace."
+            exit 0
+          fi
+
+          if grep -qi 'already exists' /tmp/publish.log; then
+            echo "The Marketplace already holds $VERSION — an earlier attempt uploaded it. Carrying on to the tag and the release."
+            exit 0
+          fi
+
+          echo "vsce reported a failure. An upload can land and still lose its response, so checking the gallery before giving up."
+          for attempt in $(seq 1 10); do
+            if gallery_has_version; then
+              echo "Version $VERSION is in the gallery after all — the upload landed and only the response was lost."
+              exit 0
+            fi
+            echo "Attempt $attempt: $VERSION is not in the gallery yet."
+            sleep 30
+          done
+
+          echo "Version $VERSION never reached the gallery. The publish failed:"
+          cat /tmp/publish.log
+          exit 1
+
+      - name: Create version tag
+        if: steps.version.outputs.need_tag == 'true'
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag -a "$TAG" -m "$TAG" || exit 1
+          fi
+
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG is already on the remote."
+            exit 0
+          fi
+
+          git push origin "$TAG"
+
+      - name: Create GitHub Release with the published VSIX
+        if: steps.version.outputs.need_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VSIX: ${{ steps.version.outputs.vsix }}
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists."
+            exit 0
+          fi
+
+          gh release create "$TAG" "$VSIX" --verify-tag --generate-notes --title "$TAG"
