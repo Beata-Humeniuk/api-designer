@@ -1,0 +1,117 @@
+{
+  "name": "api-designer",
+  "displayName": "API Designer",
+  "description": "%description%",
+  "version": "1.0.0",
+  "publisher": "beatahumeniuk",
+  "license": "MIT",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "openapi",
+    "swagger",
+    "wsdl",
+    "xsd",
+    "avro",
+    "api",
+    "contract",
+    "schema",
+    "designer"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Beata-Humeniuk/api-designer.git"
+  },
+  "homepage": "https://github.com/Beata-Humeniuk/api-designer#readme",
+  "bugs": {
+    "url": "https://github.com/Beata-Humeniuk/api-designer/issues"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    }
+  },
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "API Designer",
+      "properties": {}
+    },
+    "commands": [
+      {
+        "command": "apiDesigner.editGui",
+        "title": "%command.editGui%",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "apiDesigner.newContract",
+        "title": "%command.newContract%",
+        "category": "API Designer"
+      },
+      {
+        "command": "apiDesigner.exportMd",
+        "title": "%command.exportMd%",
+        "category": "API Designer"
+      },
+      {
+        "command": "apiDesigner.convertContract",
+        "title": "%command.convertContract%",
+        "category": "API Designer"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "apiDesigner.exportMd",
+          "when": "false"
+        },
+        {
+          "command": "apiDesigner.convertContract",
+          "when": "false"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "apiDesigner.editGui",
+          "when": "resourceLangId == json || resourceLangId == jsonc || resourceLangId == yaml || resourceLangId == xml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .avsc",
+          "group": "1_modification"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "apiDesigner.editGui",
+          "when": "resourceExtname == .json || resourceExtname == .yaml || resourceExtname == .yml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .xml || resourceExtname == .avsc",
+          "group": "7_modification"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "apiDesigner.editGui",
+          "when": "resourceLangId == json || resourceLangId == jsonc || resourceLangId == yaml || resourceLangId == xml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .avsc",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.js --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --minify --charset=utf8",
+    "test": "node test/nls-test.js && node test/designer-smoke.js && node test/reload-test.js && node test/md-export-test.js && node test/md-export-wsdl-xsd-avro-test.js && node test/write-if-changed-test.js && node test/avro-write-back-test.js && node test/dir-segment-test.js && node test/schema-convert-test.js && node test/theme-contrast-test.js",
+    "package": "npm run build && vsce package --no-dependencies",
+    "vscode:prepublish": "npm run build"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@vscode/vsce": "2.32.0",
+    "esbuild": "^0.21.5"
+  }
+}

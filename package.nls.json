@@ -1,0 +1,7 @@
+{
+  "description": "Design API and event contracts - OpenAPI/Swagger, WSDL and Avro - in a visual designer.",
+  "command.editGui": "API Designer",
+  "command.newContract": "New contract",
+  "command.exportMd": "Export to md",
+  "command.convertContract": "Convert schema"
+}
