@@ -34,6 +34,29 @@ jobs:
         run: |
           set -uo pipefail
 
+          # Whether the gallery already holds a given version of THIS
+          # extension. The only authority on "is it published"; the tag is
+          # not, which is exactly how v1.0.0 got tagged without ever landing.
+          gallery_has_version() {
+            curl -sS --max-time 30 -X POST \
+              'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json;api-version=3.0-preview.1' \
+              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-schema-designer"}]}],"flags":19}' \
+              | WANTED="$1" node -e '
+                let raw = "";
+                process.stdin.on("data", (chunk) => { raw += chunk; });
+                process.stdin.on("end", () => {
+                  try {
+                    const versions = JSON.parse(raw).results[0].extensions[0].versions;
+                    process.exit(versions.some((v) => v.version === process.env.WANTED) ? 0 : 1);
+                  } catch (e) {
+                    process.exit(1);
+                  }
+                });
+              '
+          }
+
           if [ ! -f package.json ]; then
             echo "work=false" >> "$GITHUB_OUTPUT"
             echo "No manifest on main yet; the extension has not landed here."
@@ -46,7 +69,7 @@ jobs:
             exit 1
           fi
           tag="v${version}"
-          vsix="api-designer-${version}.vsix"
+          vsix="api-schema-designer-${version}.vsix"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -58,7 +81,8 @@ jobs:
           need_release=true
           if gh release view "$tag" >/dev/null 2>&1; then need_release=false; fi
 
-          need_publish=$need_tag
+          need_publish=true
+          if gallery_has_version "$version"; then need_publish=false; fi
 
           work=false
           if [ "$need_publish" = true ] || [ "$need_tag" = true ] || [ "$need_release" = true ]; then
@@ -107,7 +131,7 @@ jobs:
           node <<'NODE'
           const manifest = require('/tmp/extension-package.json');
           const expected = {
-            name: 'api-designer',
+            name: 'api-schema-designer',
             displayName: 'API Designer',
             publisher: 'beatahumeniuk',
             version: process.env.EXPECTED_VERSION,
@@ -145,14 +169,14 @@ jobs:
               'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/json;api-version=3.0-preview.1' \
-              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-designer"}]}],"flags":19}' \
-              | node -e '
+              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-schema-designer"}]}],"flags":19}' \
+              | WANTED="$1" node -e '
                 let raw = "";
                 process.stdin.on("data", (chunk) => { raw += chunk; });
                 process.stdin.on("end", () => {
                   try {
                     const versions = JSON.parse(raw).results[0].extensions[0].versions;
-                    process.exit(versions.some((v) => v.version === process.env.VERSION) ? 0 : 1);
+                    process.exit(versions.some((v) => v.version === process.env.WANTED) ? 0 : 1);
                   } catch (e) {
                     process.exit(1);
                   }
@@ -165,14 +189,25 @@ jobs:
             exit 0
           fi
 
-          if grep -qi 'already exists' /tmp/publish.log; then
-            echo "The Marketplace already holds $VERSION — an earlier attempt uploaded it. Carrying on to the tag and the release."
-            exit 0
+          # A NAME collision is fatal: for extensions published from ~2022 on,
+          # the `name` segment has to be free across the WHOLE Marketplace,
+          # not just under this publisher — WSO2 holds 'api-designer'. (Older
+          # names do repeat across publishers; those are grandfathered, the
+          # newest such pair dates from 2021-12.) No retry and no gallery
+          # check will ever make this one land. It used to be read as "an
+          # earlier attempt uploaded it" — both messages carry the words
+          # "already exists" — which turned a failed publish into a green run
+          # that tagged and released a version nobody could install.
+          if grep -qi "extension '.*' already exists in the Marketplace" /tmp/publish.log; then
+            echo "The Marketplace refuses the extension NAME, not this version:"
+            grep -i 'already exists' /tmp/publish.log
+            echo "Someone already holds this name — pick a different 'name' in package.json. Nothing was published."
+            exit 1
           fi
 
           echo "vsce reported a failure. An upload can land and still lose its response, so checking the gallery before giving up."
           for attempt in $(seq 1 10); do
-            if gallery_has_version; then
+            if gallery_has_version "$VERSION"; then
               echo "Version $VERSION is in the gallery after all — the upload landed and only the response was lost."
               exit 0
             fi

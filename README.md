@@ -21,7 +21,7 @@ Search for **API Designer** by `beatahumeniuk` in the VS Code Marketplace, or ru
 this command in VS Code Quick Open (`Ctrl+P` / `Cmd+P`):
 
 ```text
-ext install beatahumeniuk.api-designer
+ext install beatahumeniuk.api-schema-designer
 ```
 
 You can also download a `.vsix` from

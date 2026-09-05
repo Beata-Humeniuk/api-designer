@@ -46,7 +46,7 @@ jobs:
           node <<'NODE'
           const manifest = require('/tmp/extension-package.json');
           const expected = {
-            name: 'api-designer',
+            name: 'api-schema-designer',
             displayName: 'API Designer',
             publisher: 'beatahumeniuk',
             version: require('./package.json').version,
