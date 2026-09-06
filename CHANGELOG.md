@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes to API Designer. This project follows
+Notable changes to API Editor. This project follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -34,4 +34,4 @@ First public release.
   target format, such as XSD `choice` to OpenAPI `oneOf`, or `oneOf`
   properties to Avro unions.
 
-[1.0.0]: https://github.com/Beata-Humeniuk/api-designer/releases/tag/v1.0.0
+[1.0.0]: https://github.com/Beata-Humeniuk/api-editor/releases/tag/v1.0.0

@@ -60,7 +60,7 @@ const checks = [
     'the contract row opens the contract settings, the same place the gear opens'],
   [html.includes('id="props"') && html.includes('id="propsreopen"') && html.includes('id="propssettings"'),
     'properties panel present, and the gear is its handle whether it is open or collapsed'],
-  [!html.includes("text: 'API Designer'") && html.includes('saveStatus'), 'status bar minimal: file + save state, no brand/format clutter'],
+  [!html.includes("text: 'API Editor'") && html.includes('saveStatus'), 'status bar minimal: file + save state, no brand/format clutter'],
   [html.includes('genSpecButton') && !html.includes('Specification (Word)') && !html.includes('exportDocx'),
     'no Word specification anywhere in the page'],
   [html.includes("function operationActions(operation)") &&
@@ -80,7 +80,7 @@ const checks = [
     html.includes("act('Export to md', { type: 'exportMd' })") &&
     html.includes('id="propssettings"'),
     'contract-wide actions live only in the settings behind the gear; no action bar, no md import'],
-  [html.includes('x-api-designer'), 'layout persistence wired (vendor extension)'],
+  [html.includes('x-api-editor'), 'layout persistence wired (vendor extension)'],
   [html.includes('Swagger/OpenAPI') && html.includes('WSDL') && html.includes('XSD') && html.includes('Avro'), 'all four contract kinds present'],
   [html.includes('multiplicity') && !html.includes("options: ['association'"), 'multiplicity edited on the attribute; no UML link editor'],
   [html.includes('if (modelsMode || wsdlMeta) renderModelsTree(') && html.includes("onDblClick: function () { openStructure({ kind: 'models' }); }"),

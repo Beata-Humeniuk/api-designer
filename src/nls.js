@@ -25,7 +25,7 @@ const EN = {
   'status.clickToCopy': 'Click to copy: {path}',
   'error.copyFailed': 'Could not copy.',
 
-  'tree.empty': 'No contract open. Create one with "API Designer: New contract" or right-click a contract file and choose "API Designer".',
+  'tree.empty': 'No contract open. Create one with "API Editor: New contract" or right-click a contract file and choose "API Editor".',
   'tree.pasteSchema': '＋ Paste a schema (JSON/XML)',
   'tree.more': '+{count} more',
   'tree.baseType': 'Base type: {name}',

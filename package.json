@@ -1,6 +1,6 @@
 {
-  "name": "api-schema-designer",
-  "displayName": "API Designer",
+  "name": "api-editor",
+  "displayName": "API Editor",
   "description": "%description%",
   "version": "1.0.0",
   "publisher": "beatahumeniuk",
@@ -27,11 +27,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/Beata-Humeniuk/api-designer.git"
+    "url": "https://github.com/Beata-Humeniuk/api-editor.git"
   },
-  "homepage": "https://github.com/Beata-Humeniuk/api-designer#readme",
+  "homepage": "https://github.com/Beata-Humeniuk/api-editor#readme",
   "bugs": {
-    "url": "https://github.com/Beata-Humeniuk/api-designer/issues"
+    "url": "https://github.com/Beata-Humeniuk/api-editor/issues"
   },
   "capabilities": {
     "untrustedWorkspaces": {
@@ -42,59 +42,59 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "API Designer",
+      "title": "API Editor",
       "properties": {}
     },
     "commands": [
       {
-        "command": "apiDesigner.editGui",
+        "command": "apiEditor.editGui",
         "title": "%command.editGui%",
         "icon": "$(type-hierarchy)"
       },
       {
-        "command": "apiDesigner.newContract",
+        "command": "apiEditor.newContract",
         "title": "%command.newContract%",
-        "category": "API Designer"
+        "category": "API Editor"
       },
       {
-        "command": "apiDesigner.exportMd",
+        "command": "apiEditor.exportMd",
         "title": "%command.exportMd%",
-        "category": "API Designer"
+        "category": "API Editor"
       },
       {
-        "command": "apiDesigner.convertContract",
+        "command": "apiEditor.convertContract",
         "title": "%command.convertContract%",
-        "category": "API Designer"
+        "category": "API Editor"
       }
     ],
     "menus": {
       "commandPalette": [
         {
-          "command": "apiDesigner.exportMd",
+          "command": "apiEditor.exportMd",
           "when": "false"
         },
         {
-          "command": "apiDesigner.convertContract",
+          "command": "apiEditor.convertContract",
           "when": "false"
         }
       ],
       "editor/context": [
         {
-          "command": "apiDesigner.editGui",
+          "command": "apiEditor.editGui",
           "when": "resourceLangId == json || resourceLangId == jsonc || resourceLangId == yaml || resourceLangId == xml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .avsc",
           "group": "1_modification"
         }
       ],
       "explorer/context": [
         {
-          "command": "apiDesigner.editGui",
+          "command": "apiEditor.editGui",
           "when": "resourceExtname == .json || resourceExtname == .yaml || resourceExtname == .yml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .xml || resourceExtname == .avsc",
           "group": "7_modification"
         }
       ],
       "editor/title": [
         {
-          "command": "apiDesigner.editGui",
+          "command": "apiEditor.editGui",
           "when": "resourceLangId == json || resourceLangId == jsonc || resourceLangId == yaml || resourceLangId == xml || resourceExtname == .wsdl || resourceExtname == .xsd || resourceExtname == .avsc",
           "group": "navigation"
         }

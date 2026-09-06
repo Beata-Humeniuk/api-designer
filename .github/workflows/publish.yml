@@ -42,7 +42,7 @@ jobs:
               'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/json;api-version=3.0-preview.1' \
-              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-schema-designer"}]}],"flags":19}' \
+              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-editor"}]}],"flags":19}' \
               | WANTED="$1" node -e '
                 let raw = "";
                 process.stdin.on("data", (chunk) => { raw += chunk; });
@@ -69,7 +69,7 @@ jobs:
             exit 1
           fi
           tag="v${version}"
-          vsix="api-schema-designer-${version}.vsix"
+          vsix="api-editor-${version}.vsix"
 
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -131,13 +131,13 @@ jobs:
           node <<'NODE'
           const manifest = require('/tmp/extension-package.json');
           const expected = {
-            name: 'api-schema-designer',
-            displayName: 'API Designer',
+            name: 'api-editor',
+            displayName: 'API Editor',
             publisher: 'beatahumeniuk',
             version: process.env.EXPECTED_VERSION,
             repository: {
               type: 'git',
-              url: 'https://github.com/Beata-Humeniuk/api-designer.git',
+              url: 'https://github.com/Beata-Humeniuk/api-editor.git',
             },
           };
           for (const [key, value] of Object.entries(expected)) {
@@ -169,7 +169,7 @@ jobs:
               'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/json;api-version=3.0-preview.1' \
-              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-schema-designer"}]}],"flags":19}' \
+              -d '{"filters":[{"criteria":[{"filterType":7,"value":"beatahumeniuk.api-editor"}]}],"flags":19}' \
               | WANTED="$1" node -e '
                 let raw = "";
                 process.stdin.on("data", (chunk) => { raw += chunk; });
@@ -189,19 +189,25 @@ jobs:
             exit 0
           fi
 
-          # A NAME collision is fatal: for extensions published from ~2022 on,
-          # the `name` segment has to be free across the WHOLE Marketplace,
-          # not just under this publisher — WSO2 holds 'api-designer'. (Older
-          # names do repeat across publishers; those are grandfathered, the
-          # newest such pair dates from 2021-12.) No retry and no gallery
-          # check will ever make this one land. It used to be read as "an
+          # An IDENTITY collision is fatal, and the Marketplace guards two
+          # fields separately: `name` ("... already exists in the
+          # Marketplace") and `displayName` ("This extension display name is
+          # taken"). Both must be free across the WHOLE Marketplace, not just
+          # under this publisher — WSO2.api-editor holds both spellings.
+          # (Older names do repeat across publishers; those are
+          # grandfathered, the newest such pair dates from 2021-12.) No retry
+          # and no gallery check will ever make this one land. It used to be read as "an
           # earlier attempt uploaded it" — both messages carry the words
           # "already exists" — which turned a failed publish into a green run
           # that tagged and released a version nobody could install.
-          if grep -qi "extension '.*' already exists in the Marketplace" /tmp/publish.log; then
-            echo "The Marketplace refuses the extension NAME, not this version:"
-            grep -i 'already exists' /tmp/publish.log
-            echo "Someone already holds this name — pick a different 'name' in package.json. Nothing was published."
+          if grep -qiE "extension '.*' already exists in the Marketplace|extension display name is taken" /tmp/publish.log; then
+            echo "The Marketplace refuses the extension's IDENTITY, not this version:"
+            grep -iE 'already exists|display name is taken' /tmp/publish.log
+            echo "Both 'name' and 'displayName' have to be free, and they are guarded"
+            echo "separately — WSO2.api-editor holds both 'api-editor' and"
+            echo "'API Editor'. Ask the gallery before the next attempt:"
+            echo "  scripts/check-marketplace-name.sh <name> \"<displayName>\""
+            echo "Nothing was published."
             exit 1
           fi
 

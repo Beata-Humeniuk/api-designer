@@ -7,12 +7,12 @@ Older versions no longer receive security updates.
 
 ## Your data stays local
 
-API Designer processes contracts on your machine. It makes no network requests
+API Editor processes contracts on your machine. It makes no network requests
 and uses no telemetry or analytics.
 
 - Edits are applied to the open contract. You can save through VS Code; starting
   a Markdown export or a schema conversion also saves pending changes.
-- Designer layout metadata can be stored in the contract under `x-api-designer`
+- Designer layout metadata can be stored in the contract under `x-api-editor`
   and is visible in the diff.
 - Creating a contract or saving generated schemas and Markdown exports writes
   additional files to the location you choose or confirm.

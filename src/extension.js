@@ -77,7 +77,7 @@ async function exportMdCommand(uri, operationArg) {
   const base = source.uri && source.uri.fsPath ? path.basename(source.uri.fsPath) : '';
   const meta = {
     type: 'contract',
-    generator: 'api-designer@' + extensionVersion,
+    generator: 'api-editor@' + extensionVersion,
     generated: isoToday(),
     source: workspaceRelative(source.uri) || undefined,
     managed: true
@@ -271,11 +271,11 @@ function activate(context) {
   extensionVersion = (context.extension && context.extension.packageJSON &&
     context.extension.packageJSON.version) || '';
   context.subscriptions.push(
-    vscode.commands.registerCommand('apiDesigner.editGui', (uri) =>
+    vscode.commands.registerCommand('apiEditor.editGui', (uri) =>
       require('./designerGui').openDesigner(uri)),
-    vscode.commands.registerCommand('apiDesigner.newContract', () => require('./designerGui').openNewContract()),
-    vscode.commands.registerCommand('apiDesigner.exportMd', exportMdCommand),
-    vscode.commands.registerCommand('apiDesigner.convertContract', convertContractCommand),
+    vscode.commands.registerCommand('apiEditor.newContract', () => require('./designerGui').openNewContract()),
+    vscode.commands.registerCommand('apiEditor.exportMd', exportMdCommand),
+    vscode.commands.registerCommand('apiEditor.convertContract', convertContractCommand),
   );
 }
 

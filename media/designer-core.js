@@ -173,13 +173,16 @@ function curOp() {
   return pi ? pi[S.selOp.method.toLowerCase()] || null : null;
 }
 
+// Diagram layout lives inside the contract itself, under a vendor extension
+// named after this extension. Earlier names are NOT read: an abandoned name
+// does not come back into the sources, not even to migrate off itself. A
+// contract that carries an older key opens with default positions and takes
+// the current key on the next save.
+const LAYOUT_KEY = 'x-api-editor';
+
 function ext() {
-  if (!spec['x-api-designer'] && spec['x-contract-designer']) {
-    spec['x-api-designer'] = spec['x-contract-designer'];
-    delete spec['x-contract-designer'];
-  }
-  spec['x-api-designer'] = spec['x-api-designer'] || {};
-  return spec['x-api-designer'];
+  spec[LAYOUT_KEY] = spec[LAYOUT_KEY] || {};
+  return spec[LAYOUT_KEY];
 }
 function positions() { const e = ext(); e.diagram = e.diagram || {}; e.diagram.positions = e.diagram.positions || {}; return e.diagram.positions; }
 function linkTypes() { const e = ext(); e.diagram = e.diagram || {}; e.diagram.linkTypes = e.diagram.linkTypes || {}; return e.diagram.linkTypes; }

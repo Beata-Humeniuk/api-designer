@@ -72,12 +72,12 @@ console.log('PASS: markdown export ok (whole contract + per-service)');
 
 const withMeta = specToMarkdown(spec, {
   type: 'contract',
-  generator: 'api-designer@1.0.0',
+  generator: 'api-editor@1.0.0',
   generated: '2026-08-11',
   source: 'api/pet store.yaml',
   managed: true
 });
-assert(withMeta.startsWith('---\ntype: contract\ngenerator: api-designer@1.0.0\ngenerated: 2026-08-11\nsource: "api/pet store.yaml"\nmanaged: true\n---\n\n# Menagerie'),
+assert(withMeta.startsWith('---\ntype: contract\ngenerator: api-editor@1.0.0\ngenerated: 2026-08-11\nsource: "api/pet store.yaml"\nmanaged: true\n---\n\n# Menagerie'),
   'frontmatter precedes title with fixed key order and quoting');
 assert(!specToMarkdown(spec).startsWith('---'), 'no frontmatter without meta');
 assert(!specToMarkdown(spec, {}).startsWith('---'), 'no frontmatter for empty meta');

@@ -225,7 +225,7 @@ function wirePanel(panel, getDoc, setDoc) {
         return;
       }
       if (doc.isDirty) await doc.save();
-      vscode.commands.executeCommand('apiDesigner.' + msg.type, doc.uri, msg.operation || null);
+      vscode.commands.executeCommand('apiEditor.' + msg.type, doc.uri, msg.operation || null);
       return;
     }
 
@@ -308,7 +308,7 @@ const panelsByUri = new Map();
 function createPanel(title, uriKey) {
   const vscode = require('vscode');
   const panel = vscode.window.createWebviewPanel(
-    'apiDesignerGui',
+    'apiEditorGui',
     title,
     vscode.ViewColumn.One,
     { enableScripts: true, retainContextWhenHidden: true }

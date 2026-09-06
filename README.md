@@ -1,4 +1,4 @@
-# API Designer
+# API Editor
 
 A VS Code extension for creating and editing API and event contracts visually.
 Browse models, update fields and generate Markdown documentation without editing
@@ -17,26 +17,26 @@ Everything runs locally — no network requests, AI, telemetry or usage fees.
 
 ## Installation
 
-Search for **API Designer** by `beatahumeniuk` in the VS Code Marketplace, or run
+Search for **API Editor** by `beatahumeniuk` in the VS Code Marketplace, or run
 this command in VS Code Quick Open (`Ctrl+P` / `Cmd+P`):
 
 ```text
-ext install beatahumeniuk.api-schema-designer
+ext install beatahumeniuk.api-editor
 ```
 
 You can also download a `.vsix` from
-[GitHub Releases](https://github.com/Beata-Humeniuk/api-designer/releases)
+[GitHub Releases](https://github.com/Beata-Humeniuk/api-editor/releases)
 and choose **Extensions → … → Install from VSIX**.
 
 ## Quick start
 
 1. Open a contract file, such as `openapi.yaml`, `service.wsdl`, `schema.xsd` or `event.avsc`.
-2. Run **API Designer** from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`),
+2. Run **API Editor** from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`),
    or right-click the file in the editor or Explorer.
 3. Select an operation, model or field and edit its properties in the right panel.
 4. Review the changes in the source file and save as usual (`Ctrl+S` / `Cmd+S`).
 
-To start from scratch, run **API Designer: New contract**.
+To start from scratch, run **API Editor: New contract**.
 
 ## Visual editing
 
@@ -94,11 +94,11 @@ answering with the object you picked.
 
 To convert **between OpenAPI versions** or apply description markers, use the
 separate [OpenAPI Converter](https://github.com/Beata-Humeniuk/openapi-converter)
-extension. API Designer edits the version already present in the file.
+extension. API Editor edits the version already present in the file.
 
 ## Links
 
-- [Report a bug](https://github.com/Beata-Humeniuk/api-designer/issues)
+- [Report a bug](https://github.com/Beata-Humeniuk/api-editor/issues)
 - [Privacy and security](SECURITY.md)
 - [Changelog](CHANGELOG.md)
 - [License](LICENSE) — MIT
